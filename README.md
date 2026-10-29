@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# HireVoice — AI interview hiring (POC)
 
-## Getting Started
+Hire blue-collar workers through a voice-first AI chat interview (Hindi / English).
+Stack: Next.js 15 (App Router, JavaScript), Tailwind + shadcn/ui, PostgreSQL + Prisma, NextAuth.
 
-First, run the development server:
+Planning docs: [`docs/01-workflow.md`](docs/01-workflow.md), [`docs/02-checklist.md`](docs/02-checklist.md), [`docs/03-plan.md`](docs/03-plan.md).
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Setup
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+1. **Install**
+   ```bash
+   npm install
+   ```
+2. **Environment**: copy `.env.example` to `.env` and fill in:
+   - `DATABASE_URL`: your Postgres container, for example `postgresql://postgres:postgres@localhost:5432/hiring_poc?schema=public`
+   - `NEXTAUTH_SECRET`: generate one with `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`
+   - `ADMIN_EMAIL` / `ADMIN_PASSWORD`: the admin account created by the seed
+3. **Database**: make sure the Postgres Docker container is running. Locally the POC uses its own role and database (`hiring_poc`) inside the shared `candidhr-postgres` container, so it doesn't touch that project's data. On a fresh Postgres, create them once:
+   ```sql
+   CREATE ROLE hiring_poc LOGIN CREATEDB PASSWORD '<password>';  -- CREATEDB is needed by `prisma migrate dev` (shadow DB)
+   CREATE DATABASE hiring_poc OWNER hiring_poc;
+   ```
+   Then:
+   ```bash
+   npm run db:migrate -- --name init   # create tables
+   npm run db:seed                     # create the admin user
+   ```
+4. **Run**
+   ```bash
+   npm run dev
+   ```
+   Open http://localhost:3000/admin/login.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Script | What it does |
+|---|---|
+| `npm run dev` | Start the dev server |
+| `npm run build` / `npm start` | Production build / start |
+| `npm run db:migrate` | Create and apply a migration (dev) |
+| `npm run db:deploy` | Apply migrations (prod) |
+| `npm run db:seed` | Create or reset the admin user from `.env` |
+| `npm run db:studio` | Browse the DB in Prisma Studio |
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Notes
+- shadcn/ui runs in JS mode (`components.json` → `"tsx": false`) with the `base-nova` style (Base UI primitives: use `render={<Link />}` instead of `asChild`).
+- npm 12 blocks package install scripts by default. The Prisma packages and `unrs-resolver` are approved in `package.json` (`allowScripts`).
