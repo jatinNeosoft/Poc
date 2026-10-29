@@ -11,9 +11,12 @@ export function normalizePhone(raw) {
   return /^[6-9]\d{9}$/.test(digits) ? digits : null // Indian mobile numbers start with 6–9
 }
 
+// Models sometimes fill unknown values with a placeholder instead of null
+const PLACEHOLDER = /^(not (specified|given|mentioned|provided|known)|unknown|n\/?a|none|null|-+)$/i
+
 function cleanText(v, max = 200) {
   const s = typeof v === "string" ? v.trim().replace(/\s+/g, " ") : ""
-  return s ? s.slice(0, max) : null
+  return s && !PLACEHOLDER.test(s) ? s.slice(0, max) : null
 }
 
 function cleanList(v, maxItems = 30) {

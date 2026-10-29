@@ -55,6 +55,7 @@ enum AIPurpose {
   SCREENING_GEN
   SUMMARY
   TTS
+  TRANSLATION
 }
 
 enum VideoChoice {

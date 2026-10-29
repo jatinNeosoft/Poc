@@ -5,7 +5,7 @@ import { resolveAI } from "@/lib/ai/models"
 import { loadPrompt } from "@/lib/prompts"
 import { getLanguage } from "@/lib/languages"
 import { CV_FIELD_KEYS, FIELD_BY_KEY, MAX_ATTEMPTS } from "./fields"
-import { TurnSchema } from "./schema"
+import { TranslationSchema, TurnSchema } from "./schema"
 import { checkCvValue, REASK_FIELDS } from "./rules"
 import { jobBlock, screeningQuestions, stateBlock } from "./prompt"
 
@@ -22,10 +22,67 @@ export class InterviewError extends Error {
   }
 }
 
+/**
+ * progress JSON: done/attempts/flagged per question, plus
+ * questions = screening questions snapshot [{ text, source, localized }] (fixed once screening is near),
+ * askedIdx = index of the last screening question the server has asked.
+ */
 function readProgress(interview) {
   const p = interview.progress ?? {}
-  return { done: p.done ?? [], attempts: p.attempts ?? {}, flagged: p.flagged ?? [] }
+  return {
+    done: p.done ?? [],
+    attempts: p.attempts ?? {},
+    flagged: p.flagged ?? [],
+    questions: p.questions ?? null,
+    askedIdx: p.askedIdx ?? (interview.step === "SCREENING" ? interview.screeningIdx : -1),
+  }
 }
+
+/** Screening questions for this interview: the stored snapshot, else the job's current list. */
+function questionsFor(interview, progress) {
+  return progress.questions ?? screeningQuestions(interview.job).map((q) => ({ ...q, localized: q.text }))
+}
+
+/**
+ * Freeze the screening questions for this interview and translate them once into its language,
+ * so the server can ask them word-for-word (the model only acknowledges answers).
+ */
+async function ensureQuestions(interview, progress, language) {
+  if (progress.questions) return progress.questions
+
+  const base = screeningQuestions(interview.job)
+  let localized = base.map((q) => q.text)
+  if (base.length && language.code !== "en") {
+    try {
+      const prompt = await loadPrompt(language.code, "translate-questions", {
+        languageName: language.name,
+        questions: base.map((q, i) => `${i + 1}. ${q.text}`).join("\n"),
+      })
+      const { data } = await generateStructured({
+        provider: interview.provider,
+        model: interview.model,
+        purpose: "TRANSLATION",
+        interviewId: interview.id,
+        jobId: interview.jobId,
+        system: prompt,
+        messages: [{ role: "user", content: "Translate the questions." }],
+        schema: TranslationSchema,
+        schemaName: "translations",
+        maxTokens: 2000,
+      })
+      if (data.translations.length === base.length) localized = data.translations.map((t) => t.trim())
+    } catch (err) {
+      console.error("[interview] question translation failed, using English", err)
+    }
+  }
+
+  const questions = base.map((q, i) => ({ ...q, localized: localized[i] || q.text }))
+  progress.questions = questions
+  await prisma.interview.update({ where: { id: interview.id }, data: { progress } })
+  return questions
+}
+
+const joinReply = (a, b) => [a.trim(), b.trim()].filter(Boolean).join(" ")
 
 /** What the candidate is being asked right now: a CV field key, "video", "screening:<i>", or null. */
 function currentTarget(interview, progress) {
@@ -41,10 +98,10 @@ function currentTarget(interview, progress) {
   }
 }
 
-function questionText(target, job) {
+function questionText(target, questions) {
   if (!target) return ""
   if (target === "video") return "Optional intro video"
-  if (target.startsWith("screening:")) return screeningQuestions(job)[Number(target.split(":")[1])]?.text ?? ""
+  if (target.startsWith("screening:")) return questions[Number(target.split(":")[1])]?.text ?? ""
   return FIELD_BY_KEY[target]?.ask ?? target
 }
 
@@ -112,7 +169,7 @@ export async function videoEvent(interviewId, event) {
   }
 
   const progress = readProgress(interview)
-  const hasQuestions = screeningQuestions(interview.job).length > 0
+  const hasQuestions = questionsFor(interview, progress).length > 0
   await prisma.interview.update({
     where: { id: interviewId },
     data: {
@@ -149,13 +206,16 @@ export async function runTurn(interviewId, input) {
   const language = getLanguage(interview.language)
   const progress = readProgress(interview)
   const target = currentTarget(interview, progress)
+  const questions = ["VIDEO", "SCREENING"].includes(interview.step)
+    ? await ensureQuestions(interview, progress, language)
+    : questionsFor(interview, progress)
 
   // System prompt stays identical for the whole interview (cacheable); the state goes in turnContext
   const system = await loadPrompt(interview.language, "system", { jobBlock: jobBlock(job), today: todayText() })
   const turnContext = `Interview state for this turn (from the server, not the candidate):\n${stateBlock({
     interview,
     candidate,
-    job,
+    questions,
     progress,
     target,
     kind: input.kind,
@@ -178,12 +238,11 @@ export async function runTurn(interviewId, input) {
     maxTokens: 4000,
   })
 
-  return applyTurn({ interview, language, progress, target, input, incoming, data, usage })
+  return applyTurn({ interview, language, progress, questions, target, input, incoming, data, usage })
 }
 
-async function applyTurn({ interview, language, progress, target, input, incoming, data, usage }) {
+async function applyTurn({ interview, language, progress, questions, target, input, incoming, data, usage }) {
   const { job, candidate } = interview
-  const questions = screeningQuestions(job)
   const done = new Set(progress.done)
   const flagged = new Set(progress.flagged)
   const attempts = { ...progress.attempts }
@@ -286,7 +345,16 @@ async function applyTurn({ interview, language, progress, target, input, incomin
     if (step === "DONE") status = "COMPLETED"
   }
 
-  // 5. Save everything at once
+  // 5. The server asks screening questions word-for-word and adds the closing line itself,
+  //    so answers can never be stored under the wrong question
+  let askedIdx = progress.askedIdx
+  if (status === "IN_PROGRESS" && step === "SCREENING" && askedIdx < screeningIdx && questions[screeningIdx]) {
+    reply = joinReply(reply, questions[screeningIdx].localized)
+    askedIdx = screeningIdx
+  }
+  if (status === "COMPLETED") reply = joinReply(reply, language.labels.submitted)
+
+  // 6. Save everything at once
   await prisma.$transaction(async (tx) => {
     if (releaseCandidateId) {
       await tx.candidate.update({ where: { id: releaseCandidateId }, data: { phone: null } })
@@ -304,7 +372,7 @@ async function applyTurn({ interview, language, progress, target, input, incomin
           interviewId: interview.id,
           messageId: userMsg.id,
           target,
-          question: questionText(target, job),
+          question: questionText(target, questions),
           answer: input.text.trim().slice(0, 1000),
           inputMode: input.inputMode,
           sttConfidence: input.sttConfidence ?? null,
@@ -345,7 +413,7 @@ async function applyTurn({ interview, language, progress, target, input, incomin
         status,
         videoChoice,
         screeningIdx,
-        progress: { done: [...done], attempts, flagged: [...flagged] },
+        progress: { done: [...done], attempts, flagged: [...flagged], questions: progress.questions, askedIdx },
         ...(status !== "IN_PROGRESS" ? { endedAt: new Date() } : {}),
       },
     })
@@ -367,7 +435,7 @@ export async function getClientState(interviewId) {
   if (!interview) return null
 
   const progress = readProgress(interview)
-  const totalQuestions = screeningQuestions(interview.job).length
+  const totalQuestions = questionsFor(interview, progress).length
   const cvDone = CV_FIELD_KEYS.filter((k) => progress.done.includes(k)).length
   const videoDone = progress.done.includes("video")
   const percent =

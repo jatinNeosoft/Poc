@@ -14,7 +14,7 @@ export function jobBlock(job) {
   ].join("\n")
 }
 
-/** Questions in the order they are asked: admin's own first, then AI-generated. */
+/** The job's questions in asking order: admin's own first, then AI-generated (English). */
 export function screeningQuestions(job) {
   return [
     ...job.customQuestions.map((text) => ({ text, source: "custom" })),
@@ -30,14 +30,12 @@ function formatValue(v) {
   return String(v)
 }
 
-function afterVideoInstruction(questions, idx = 0) {
-  return questions[idx]
-    ? `then ask the first screening question: "${questions[idx].text}"`
-    : "then thank them and tell them clearly that their application is submitted. Say goodbye."
-}
+// The server itself appends screening questions and the closing line after the model's reply
+const SERVER_CONTINUES =
+  "Do NOT ask any other question and do NOT say goodbye — the server adds what comes next right after your words."
 
-/** The "Interview state" section of the system prompt for this turn. */
-export function stateBlock({ interview, candidate, job, progress, target, kind, language, sttConfidence }) {
+/** The "Interview state" section for this turn (sent after the conversation). */
+export function stateBlock({ interview, candidate, questions, progress, target, kind, language, sttConfidence }) {
   const lines = [`Candidate's language: ${language.name}`]
   const done = new Set(progress.done)
 
@@ -56,7 +54,6 @@ export function stateBlock({ interview, candidate, job, progress, target, kind, 
         ? ` (attempt ${attempt} of ${MAX_ATTEMPTS})`
         : ""
 
-  const questions = screeningQuestions(job)
   const missing = CV_FIELDS.filter((f) => !done.has(f.key))
 
   switch (interview.step) {
@@ -83,7 +80,7 @@ export function stateBlock({ interview, candidate, job, progress, target, kind, 
       if (interview.videoChoice === "YES") {
         lines.push(
           "Step: VIDEO. The candidate agreed to record a video and the recorder is open on their screen.",
-          `If they now say they don't want to, set videoDecision "no", say it's fine, ${afterVideoInstruction(questions)}`,
+          `If they now say they don't want to: set videoDecision "no" and reply with one short sentence that this is completely fine. ${SERVER_CONTINUES}`,
           "Otherwise gently remind them to press the record button, or the skip button if they changed their mind."
         )
       } else {
@@ -91,28 +88,31 @@ export function stateBlock({ interview, candidate, job, progress, target, kind, 
           "Step: VIDEO OFFER.",
           "Ask (or you already asked) if they would like to record an optional 30–60 second intro video with their phone camera. Make clear it is optional.",
           `If yes: set videoDecision "yes" and tell them to press the record button below the chat.`,
-          `If no: set videoDecision "no", say it's completely fine, ${afterVideoInstruction(questions)}`
+          `If no: set videoDecision "no" and reply with one short sentence that this is completely fine. ${SERVER_CONTINUES}`
         )
       }
       break
 
     case "SCREENING": {
-      const idx = interview.screeningIdx
-      const next = questions[idx + 1]
-      lines.push(
-        "Step: SCREENING QUESTIONS (ask in the candidate's language, in simple words).",
-        `Current question ${idx + 1} of ${questions.length}: "${questions[idx]?.text}"${attemptNote}.`,
-        next
-          ? `After a usable answer, ask the next question: "${next.text}"`
-          : "This is the LAST question. After a usable answer, thank them warmly and tell them clearly that their application is submitted. Say goodbye. Do not ask anything else."
-      )
+      const q = questions[interview.screeningIdx]
+      if (kind === "note") {
+        lines.push(
+          "Step: SCREENING QUESTIONS are about to start.",
+          `Reply with one short thank-you sentence and say that a few questions about the job follow. ${SERVER_CONTINUES}`
+        )
+      } else {
+        lines.push(
+          "Step: SCREENING QUESTIONS. The server asks each question itself.",
+          `CURRENT question ${interview.screeningIdx + 1} of ${questions.length} — the candidate is answering THIS one now: "${q?.localized}" (English: "${q?.text}")${attemptNote}.`,
+          `If the answer is usable: put a short English summary of the answer to THIS question in screeningAnswer, and reply with ONE short acknowledgement only (for example "ठीक है, धन्यवाद।" / "Okay, thank you."). ${SERVER_CONTINUES}`,
+          "If it is not usable: leave screeningAnswer null and ask the CURRENT question again in simpler words."
+        )
+      }
       break
     }
 
     case "DONE":
-      lines.push(
-        "Step: FINISHED. Thank the candidate warmly and tell them clearly that their application is submitted. Say goodbye. Do not ask anything."
-      )
+      lines.push(`Step: FINISHED. Reply with one short, warm thank-you sentence only. ${SERVER_CONTINUES}`)
       break
   }
 

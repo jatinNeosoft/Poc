@@ -43,6 +43,11 @@ Each turn sends the system prompt plus history and forces the tool `interview_tu
   needsClarification: boolean }
 ```
 
+### Screening questions are asked by the server (Phase 4 change)
+Smaller models sometimes mixed up "summarise the current answer" and "ask the next question" in one reply, so screening answers landed under the wrong question. Now:
+- When the interview reaches the video step, the job's screening questions are frozen for that interview and translated once into its language (`prompts/<lang>/translate-questions.md`, purpose `TRANSLATION`).
+- During screening the model only acknowledges the answer (or re-asks); the server appends the next question word-for-word, and the localized "application submitted" line at the end.
+
 ### Answer validation (two checks on every answer, in the same AI call, at no extra cost)
 1. **Answer quality**: is it relevant, clear, valid, and heard correctly?
    - Speech-to-text confidence from the browser is sent with the message. If confidence is below 0.6 or `misheard` is true, the AI asks "Did you say …?"
@@ -58,7 +63,7 @@ Every check is stored in `AnswerCheck` (see the schema). The admin sees ✅ / �
   - Claude: `client.messages.parse({ output_config: { format: zodOutputFormat(schema), effort } })`
   - OpenAI: `client.responses.parse({ text: { format: zodTextFormat(schema, name) } })`
   - Same `{ data, usage }` result from both providers (`src/lib/ai/`). OpenAI strict schemas need `.nullable()` instead of `.optional()`.
-- Default models: Claude `claude-opus-5-5`, OpenAI `gpt-6.1-sol` (override with `CLAUDE_MODEL` / `OPENAI_MODEL` or per job).
+- Default models: Claude `claude-haiku-5-5` (switched from Opus on 2026-10-29 for cost: ~₹0.6 vs ~₹28 per interview), OpenAI `gpt-6.1-sol` (override with `CLAUDE_MODEL` / `OPENAI_MODEL` or per job).
 - The server validates the output with Zod, merges `cvUpdates`, and decides the next step.
 - Models are configurable through env and per job. The defaults are a fast, low-cost model from each provider, which keeps per-interview cost low. Exact model IDs and prices will be checked against the current provider docs when the seed is written.
 

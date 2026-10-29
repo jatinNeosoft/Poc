@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "AIPurpose" ADD VALUE 'TRANSLATION';

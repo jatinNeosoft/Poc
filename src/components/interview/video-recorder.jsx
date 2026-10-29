@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { Loader2, RotateCcw, Send, Square, Video, X } from "lucide-react"
+import fixWebmDuration from "fix-webm-duration"
 import { api, errorLabel } from "@/lib/interview/client"
 import { ErrorBanner } from "./error-banner"
 
@@ -54,13 +55,15 @@ export function VideoRecorder({ session, labels, error, onDone, onSkip, onError 
       const recorder = new MediaRecorder(stream, { ...(mimeType ? { mimeType } : {}), videoBitsPerSecond: 800_000 })
       const chunks = []
       recorder.ondataavailable = (e) => e.data.size && chunks.push(e.data)
-      recorder.onstop = () => {
+      recorder.onstop = async () => {
         clearInterval(timerRef.current)
         stopStream()
         const type = (recorder.mimeType || mimeType || "video/webm").split(";")[0]
-        const blob = new Blob(chunks, { type })
-        const durationSec = Math.round((Date.now() - startedAtRef.current) / 1000)
-        setRecorded({ blob, url: URL.createObjectURL(blob), type, durationSec })
+        const durationMs = Date.now() - startedAtRef.current
+        let blob = new Blob(chunks, { type })
+        // Chrome writes WebM without a duration, so players show no length/seek bar; patch it in
+        if (type === "video/webm") blob = await fixWebmDuration(blob, durationMs, { logger: false })
+        setRecorded({ blob, url: URL.createObjectURL(blob), type, durationSec: Math.round(durationMs / 1000) })
         setStatus("review")
       }
 

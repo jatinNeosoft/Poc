@@ -65,13 +65,16 @@ Mark `[x]` when done and verified. Each item has a short acceptance check.
 - [ ] Test on a real Android phone over HTTPS (mic, Hindi voice, camera) ⏳
 
 ## Phase 4 — Candidates
-- [ ] List with columns: name, phone, job, experience, location, status, interview date, has video
-- [ ] Filters: job, status, date range, language; search by name/phone; pagination
-- [ ] Inline status change (New / Shortlisted / Rejected)
-- [ ] Detail page: formatted CV, video player, screening Q&A, full transcript, summary + score
-- [ ] ✅ / ⚠️ / ❌ quality + fit badge next to each CV field and screening answer (hover shows the reason)
-- [ ] "Flagged answers" count in the list + filter "has flagged answers"
-- [ ] CV PDF download
+- [x] List with columns: name, phone, job, experience, location, fit score, status, interview date + language, has video; "In progress" + flagged-count markers
+- [x] Filters: job, status, date range, language, flagged answers; search by name/phone (debounced); filters live in the URL; pagination (20/page)
+- [x] Inline status change (New / Shortlisted / Rejected), saved immediately
+- [x] Detail page: AI assessment (summary + fit score + reason, regenerate), CV, screening Q&A, video player, full transcript (voice/text + speech confidence per answer), AI cost of the interview
+- [x] ✅ / ⚠️ / ❌ / ⚑ quality + ↑↓ fit marker next to each CV field and screening answer (hover shows the reason and attempts)
+- [x] Flagged answers banner on the detail page + "Flagged answers" filter in the list
+- [x] CV PDF download (`@react-pdf/renderer`, Noto Sans + Noto Sans Devanagari; facts only, no AI score)
+- [x] Intro videos get a proper duration/seek bar (`fix-webm-duration` before upload)
+- [x] Screening made deterministic: questions translated once per interview, the server asks them word-for-word and adds the closing line; the model only acknowledges / re-asks (fixes answers saved under the wrong question with Haiku)
+- [x] Default Claude model switched to `claude-haiku-5-5`
 
 ## Phase 5 — AI Cost + Settings
 - [ ] Per-interview table: provider, model, input/output tokens, USD, INR, messages, duration

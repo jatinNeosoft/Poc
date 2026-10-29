@@ -59,8 +59,8 @@ Planning docs: [`docs/01-workflow.md`](docs/01-workflow.md), [`docs/02-checklist
 
 | Model | Cost per interview |
 |---|---|
-| `claude-opus-5-5` (default) | ~₹28 (with prompt caching) |
-| `claude-haiku-5-5` | ~₹0.6 |
+| `claude-opus-5-5` | ~₹28 (with prompt caching) |
+| `claude-haiku-5-5` (default) | ~₹0.6 |
 | Server voice (`tts-1`), only if the phone has no voice | ~₹2.8 |
 
 Choose the model per job (Jobs → Edit → AI model).

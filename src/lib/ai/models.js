@@ -22,7 +22,7 @@ export function defaultProvider() {
 
 export function defaultModel(provider) {
   if (provider === "OPENAI") return process.env.OPENAI_MODEL?.trim() || "gpt-6.1-sol"
-  return process.env.CLAUDE_MODEL?.trim() || "claude-opus-5-5"
+  return process.env.CLAUDE_MODEL?.trim() || "claude-haiku-5-5"
 }
 
 export function isKnownModel(provider, model) {
