@@ -54,7 +54,11 @@ Each turn sends the system prompt plus history and forces the tool `interview_tu
    - At the end, the summary step uses all the answer checks to produce the fit score (1–10) and its reason.
 
 Every check is stored in `AnswerCheck` (see the schema). The admin sees ✅ / ⚠️ / ❌ next to each CV field and screening answer, plus a "Flagged answers" count.
-- Anthropic uses `tool_choice: {type:"tool", name:"interview_turn"}` and OpenAI uses `tool_choice: {type:"function", function:{name:"interview_turn"}}`, so the output has the same shape from both providers.
+- **Update (Phase 2):** current Claude models (Opus 5.5, Sonnet 5.5) reject forced `tool_choice`, so both providers use **structured outputs** with one shared Zod schema instead:
+  - Claude: `client.messages.parse({ output_config: { format: zodOutputFormat(schema), effort } })`
+  - OpenAI: `client.responses.parse({ text: { format: zodTextFormat(schema, name) } })`
+  - Same `{ data, usage }` result from both providers (`src/lib/ai/`). OpenAI strict schemas need `.nullable()` instead of `.optional()`.
+- Default models: Claude `claude-opus-5-5`, OpenAI `gpt-6.1-sol` (override with `CLAUDE_MODEL` / `OPENAI_MODEL` or per job).
 - The server validates the output with Zod, merges `cvUpdates`, and decides the next step.
 - Models are configurable through env and per job. The defaults are a fast, low-cost model from each provider, which keeps per-interview cost low. Exact model IDs and prices will be checked against the current provider docs when the seed is written.
 

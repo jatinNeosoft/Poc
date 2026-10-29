@@ -21,14 +21,16 @@ Mark `[x]` when done and verified. Each item has a short acceptance check.
 - [x] Dashboard counts verified with test data: jobs (2, 1 open), candidates (2), today's interviews (1, yesterday excluded), total AI cost (₹1.37 / $0.0163)
 
 ## Phase 2 — Jobs + link + QR
-- [ ] Jobs list (status, openings, applicants count)
-- [ ] Create/edit form with all fields + custom screening questions (add/remove)
-- [ ] AI provider/model selector per job
-- [ ] Unique slug on create
-- [ ] Close/reopen job
-- [ ] Job detail shows the public link (copy button) and the QR code
-- [ ] QR **Download PNG** works and **Print** opens a clean print view
-- [ ] AI-generated screening questions (2–4) are created on save, editable, and their cost logged
+- [x] Jobs list (status, openings, applicants count) + All / Open / Closed filter
+- [x] Create/edit form with all fields + custom screening questions (add/remove); validation on client and server (salary max ≥ min, duplicates removed)
+- [x] AI provider/model selector per job ("Default" = `.env`)
+- [x] Unique slug on create; never changes on edit, so printed QR codes keep working
+- [x] Close (with confirmation) / reopen job; closed job → `/apply` shows "job closed"
+- [x] Job detail shows the public link (copy button) and the QR code
+- [x] QR **Download PNG** and **Print** poster (Hindi + English); all 3 QR images decode to the right link
+- [x] AI-generated screening questions: generated on save, editable, regenerate button, cost logged via `AIUsage` (purpose `SCREENING_GEN`)
+- [ ] AI generation tested with a real API key ⏳ *no keys in `.env` yet; failure path tested: job saves, admin sees a clear warning*
+- [x] Model pricing seeded (3 Claude + 4 OpenAI models, checked 2026-10-29)
 
 ## Phase 3 — AI interview (candidate)
 - [ ] Provider interface + Claude provider + OpenAI provider (forced tool / function call)

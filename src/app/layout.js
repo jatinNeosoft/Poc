@@ -20,10 +20,9 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+    // Font variables go on <html>: globals.css applies font-sans there
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body className="antialiased">
         <TooltipProvider>{children}</TooltipProvider>
         <Toaster richColors position="top-center" />
       </body>
