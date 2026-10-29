@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { formatSalary } from "@/lib/jobs/format"
 import { getLanguages, publicLanguage } from "@/lib/languages"
 import { InterviewApp } from "@/components/interview/interview-app"
+import { getTtsSettings } from "@/lib/settings"
 
 export const dynamic = "force-dynamic"
 
@@ -23,7 +24,7 @@ export default async function ApplyPage({ params }) {
   const job = await prisma.job.findUnique({ where: { slug } })
   if (!job) notFound()
 
-  const mode = process.env.TTS_MODE
+  const { mode } = await getTtsSettings()
   return (
     <div className={devanagari.className}>
       <InterviewApp
@@ -35,7 +36,7 @@ export default async function ApplyPage({ params }) {
           closed: job.status !== "OPEN",
         }}
         languages={getLanguages().map(publicLanguage)}
-        ttsMode={mode === "browser" || mode === "server" ? mode : "auto"}
+        ttsMode={mode}
       />
     </div>
   )

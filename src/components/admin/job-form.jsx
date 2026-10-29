@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { TagInput } from "@/components/admin/tag-input"
 import { QuestionListEditor } from "@/components/admin/question-list-editor"
 import { jobInputSchema } from "@/lib/validators/job"
-import { AI_MODELS, PROVIDER_LABELS } from "@/lib/ai/models"
+import { PROVIDER_LABELS } from "@/lib/ai/models"
 import { JOB_TYPE_LABELS } from "@/lib/jobs/format"
 
 const DEFAULT_PROVIDER = "DEFAULT" // Select needs a non-null value for "use the env default"
@@ -44,9 +44,10 @@ function emptyJob() {
 
 /**
  * Create / edit form. `job` given → edit mode (PUT), otherwise create (POST).
- * `defaultAI` is the env default ({ provider, model }) shown in the "Default" option.
+ * `defaultAI` is the default from Settings ({ provider, model }) shown in the "Default" option;
+ * `models` = selectable models per provider ({ CLAUDE: [{ id, label }], OPENAI: [...] }).
  */
-export function JobForm({ job, defaultAI }) {
+export function JobForm({ job, defaultAI, models }) {
   const router = useRouter()
   const isEdit = !!job
 
@@ -268,7 +269,7 @@ export function JobForm({ job, defaultAI }) {
                     onValueChange={(v) => {
                       const next = v === DEFAULT_PROVIDER ? null : v
                       field.onChange(next)
-                      setValue("aiModel", next ? AI_MODELS[next][0].id : null, { shouldValidate: true })
+                      setValue("aiModel", next ? (models[next][0]?.id ?? null) : null, { shouldValidate: true })
                     }}
                   >
                     <SelectTrigger id="aiProvider" className="w-full">
@@ -294,7 +295,7 @@ export function JobForm({ job, defaultAI }) {
                 control={control}
                 name="aiModel"
                 render={({ field }) => {
-                  const items = AI_MODELS[provider].map((m) => ({ value: m.id, label: m.label }))
+                  const items = models[provider].map((m) => ({ value: m.id, label: m.label }))
                   return (
                     <Select value={field.value} onValueChange={field.onChange} items={items}>
                       <SelectTrigger id="aiModel" className="w-full" aria-invalid={!!errors.aiModel}>
@@ -313,7 +314,7 @@ export function JobForm({ job, defaultAI }) {
               />
             ) : (
               <p className="flex h-8 items-center text-sm text-muted-foreground">
-                {defaultAI.model} <span className="ml-1">(from .env)</span>
+                {defaultAI.model} <span className="ml-1">(default from Settings)</span>
               </p>
             )}
             <FieldError error={errors.aiModel} />

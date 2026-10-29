@@ -24,8 +24,8 @@ export function candidateWhere(f) {
   if (f.lang) interview.language = f.lang
   if (f.from || f.to) {
     interview.startedAt = {
-      ...(f.from ? { gte: new Date(`${f.from}T00:00:00`) } : {}),
-      ...(f.to ? { lte: new Date(`${f.to}T23:59:59.999`) } : {}),
+      ...(f.from ? { gte: new Date(`${f.from}T00:00:00+05:30`) } : {}),
+      ...(f.to ? { lte: new Date(`${f.to}T23:59:59.999+05:30`) } : {}),
     }
   }
 

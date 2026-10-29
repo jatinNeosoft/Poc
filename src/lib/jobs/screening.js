@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { loadPrompt } from "@/lib/prompts"
 import { generateStructured } from "@/lib/ai"
 import { resolveAI } from "@/lib/ai/models"
+import { getAISettings } from "@/lib/settings"
 import { formatSalary, JOB_TYPE_LABELS } from "@/lib/jobs/format"
 
 // No min/max on the array: strict structured-output schemas don't allow them, so we trim after
@@ -12,7 +13,7 @@ const ScreeningSchema = z.object({
 
 /** Ask the job's AI model for 2–4 screening questions, save them on the job, log the cost. */
 export async function generateScreeningQuestions(job) {
-  const { provider, model } = resolveAI(job)
+  const { provider, model } = resolveAI(job, await getAISettings())
 
   const system = await loadPrompt("en", "screening-gen", {
     title: job.title,

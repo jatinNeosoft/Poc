@@ -1,10 +1,13 @@
 import { JobForm } from "@/components/admin/job-form"
-import { defaultModel, defaultProvider } from "@/lib/ai/models"
+import { resolveAI } from "@/lib/ai/models"
+import { getModelOptions } from "@/lib/ai/catalog"
+import { getAISettings } from "@/lib/settings"
 
+export const dynamic = "force-dynamic"
 export const metadata = { title: "New job — HireVoice" }
 
-export default function NewJobPage() {
-  const provider = defaultProvider()
+export default async function NewJobPage() {
+  const [defaults, models] = await Promise.all([getAISettings(), getModelOptions()])
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -14,7 +17,7 @@ export default function NewJobPage() {
           After saving you get a public interview link and a QR code to print.
         </p>
       </div>
-      <JobForm defaultAI={{ provider, model: defaultModel(provider) }} />
+      <JobForm defaultAI={resolveAI(null, defaults)} models={models} />
     </div>
   )
 }

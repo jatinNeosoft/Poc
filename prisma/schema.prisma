@@ -271,3 +271,10 @@ model ModelPricing {
 
   @@unique([provider, model])
 }
+
+// Admin-editable settings (override .env). Keys: "ai", "tts", "currency"
+model AppSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}

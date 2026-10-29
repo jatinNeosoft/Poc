@@ -1,5 +1,4 @@
 import { z } from "zod"
-import { AI_MODELS, isKnownModel } from "@/lib/ai/models"
 
 const optionalInt = z
   .number({ error: "Enter a number" })
@@ -34,7 +33,8 @@ export const jobInputSchema = z
     if (v.salaryMin != null && v.salaryMax != null && v.salaryMax < v.salaryMin) {
       ctx.addIssue({ code: "custom", path: ["salaryMax"], message: "Max salary must be ≥ min salary" })
     }
-    if (v.aiProvider && !isKnownModel(v.aiProvider, v.aiModel)) {
+    // Whether the model is active is checked on the server (pricing table)
+    if (v.aiProvider && !v.aiModel) {
       ctx.addIssue({ code: "custom", path: ["aiModel"], message: "Pick a model for this provider" })
     }
   })
@@ -50,4 +50,3 @@ export const generatedQuestionsSchema = z.object({
   generatedQuestions: cleanList(6, 300),
 })
 
-export { AI_MODELS }

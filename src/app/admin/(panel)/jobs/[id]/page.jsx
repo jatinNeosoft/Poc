@@ -11,6 +11,7 @@ import { CopyButton } from "@/components/admin/copy-button"
 import { GeneratedQuestionsCard } from "@/components/admin/generated-questions-card"
 import { formatSalary, JOB_TYPE_LABELS, publicJobUrl } from "@/lib/jobs/format"
 import { PROVIDER_LABELS, resolveAI } from "@/lib/ai/models"
+import { getAISettings } from "@/lib/settings"
 import { qrDataUrl } from "@/lib/qr"
 
 export const dynamic = "force-dynamic"
@@ -40,7 +41,7 @@ export default async function JobDetailPage({ params }) {
 
   const url = publicJobUrl(job.slug)
   const qr = await qrDataUrl(url, 320)
-  const ai = resolveAI(job)
+  const ai = resolveAI(job, await getAISettings())
 
   return (
     <div className="space-y-6">

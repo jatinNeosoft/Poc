@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { jsonError, parseBody, requireAdmin, validate } from "@/lib/api"
 import { generatedQuestionsSchema, jobInputSchema, jobStatusSchema } from "@/lib/validators/job"
+import { isSelectableModel } from "@/lib/ai/catalog"
 
 async function findJob(id) {
   return prisma.job.findUnique({ where: { id } })
@@ -23,10 +24,16 @@ export async function PUT(req, { params }) {
   if (response) return response
 
   const { id } = await params
-  if (!(await findJob(id))) return jsonError("Job not found", 404)
+  const existing = await findJob(id)
+  if (!existing) return jsonError("Job not found", 404)
 
   const { data, response: invalid } = await parseBody(req, jobInputSchema)
   if (invalid) return invalid
+  // A deactivated model may stay on a job that already uses it, but cannot be newly chosen
+  const unchanged = data.aiProvider === existing.aiProvider && data.aiModel === existing.aiModel
+  if (data.aiProvider && !unchanged && !(await isSelectableModel(data.aiProvider, data.aiModel))) {
+    return jsonError("Validation failed", 400, { fieldErrors: { aiModel: ["This model is not active in Settings → Model pricing"] } })
+  }
 
   const job = await prisma.job.update({ where: { id }, data })
   return NextResponse.json({ job })

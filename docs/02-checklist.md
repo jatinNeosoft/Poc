@@ -77,10 +77,16 @@ Mark `[x]` when done and verified. Each item has a short acceptance check.
 - [x] Default Claude model switched to `claude-haiku-5-5`
 
 ## Phase 5 — AI Cost + Settings
-- [ ] Per-interview table: provider, model, input/output tokens, USD, INR, messages, duration
-- [ ] Totals: per job, per day, per month, per provider, overall
-- [ ] Settings: ModelPricing table editable (add/edit/deactivate), shows the USD→INR rate in use
-- [ ] Costs calculated from the real token usage returned by the API
+- [x] Per-interview table: candidate, job, provider/model, messages, duration, date, input/output tokens, USD, INR (paginated)
+- [x] Totals: per job, per day, per month, per provider & model, per purpose, overall (footer totals match the DB exactly)
+- [x] KPI tiles: total cost, interviews (completed), average per completed interview, AI calls + tokens + % input from cache
+- [x] Daily cost chart (₹ per day, India time; hover/focus tooltip; validated colour in light + dark)
+- [x] Filters: Last 7 days / Last 30 days / This month / All time, custom dates, provider, job — in the URL
+- [x] Settings → Model pricing: edit prices, add a model (becomes selectable for jobs), activate/deactivate; the default model can’t be deactivated; duplicates refused
+- [x] Settings → AI defaults (provider + Claude/OpenAI model), override `.env`; the job form and new interviews use them
+- [x] Settings → Read-aloud voice: mode (phone first / phone only / always server) + server voice per language (9 `tts-1` voices checked against the API)
+- [x] Settings → Currency: ₹ per US$ (new AI calls only; past rows keep their rate)
+- [x] Costs calculated from the actual token usage returned by the API (cache reads/writes priced separately)
 
 ## Phase 6 — Finish
 - [ ] README: setup, env, Docker Postgres, migrate, seed, run, how to add a language

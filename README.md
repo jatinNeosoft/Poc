@@ -63,7 +63,17 @@ Planning docs: [`docs/01-workflow.md`](docs/01-workflow.md), [`docs/02-checklist
 | `claude-haiku-5-5` (default) | ~₹0.6 |
 | Server voice (`tts-1`), only if the phone has no voice | ~₹2.8 |
 
-Choose the model per job (Jobs → Edit → AI model).
+Choose the model per job (Jobs → Edit → AI model), or change the default in **Settings → AI defaults**.
+
+## Admin settings
+
+**Settings** (stored in the `AppSetting` table) override `.env`:
+- **AI defaults**: provider + default Claude/OpenAI model for jobs set to "Default" (`.env`: `AI_PROVIDER`, `CLAUDE_MODEL`, `OPENAI_MODEL`).
+- **Read-aloud voice**: `auto` / `browser` / `server` + server voice per language (`.env`: `TTS_MODE`).
+- **Model pricing**: US$ per 1M tokens (per 1M characters for `tts-1`). Adding an active row makes that model selectable for jobs.
+- **Currency**: ₹ per US$ (`.env`: `USD_TO_INR`). Applies to new AI calls; each usage row keeps the rate it was recorded with.
+
+The **AI Cost** page shows cost per interview and totals by job, day, month, provider/model and purpose.
 
 ## Notes
 - shadcn/ui runs in JS mode (`components.json` → `"tsx": false`) with the `base-nova` style (Base UI primitives: use `render={<Link />}` instead of `asChild`).

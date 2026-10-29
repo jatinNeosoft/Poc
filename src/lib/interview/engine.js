@@ -2,6 +2,7 @@ import { randomBytes, timingSafeEqual } from "node:crypto"
 import { prisma } from "@/lib/prisma"
 import { generateStructured } from "@/lib/ai"
 import { resolveAI } from "@/lib/ai/models"
+import { getAISettings } from "@/lib/settings"
 import { loadPrompt } from "@/lib/prompts"
 import { getLanguage } from "@/lib/languages"
 import { CV_FIELD_KEYS, FIELD_BY_KEY, MAX_ATTEMPTS } from "./fields"
@@ -138,7 +139,7 @@ export async function startInterview({ slug, languageCode }) {
   const language = getLanguage(languageCode)
   if (!language) throw new InterviewError("bad_language")
 
-  const { provider, model } = resolveAI(job)
+  const { provider, model } = resolveAI(job, await getAISettings())
   const candidate = await prisma.candidate.create({
     data: {
       jobId: job.id,

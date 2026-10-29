@@ -6,6 +6,7 @@ import { jobInputSchema } from "@/lib/validators/job"
 import { makeJobSlug } from "@/lib/slug"
 import { generateScreeningQuestions } from "@/lib/jobs/screening"
 import { describeAIError } from "@/lib/jobs/ai-errors"
+import { isSelectableModel } from "@/lib/ai/catalog"
 
 export async function GET(req) {
   const { response } = await requireAdmin()
@@ -26,6 +27,9 @@ export async function POST(req) {
 
   const { data, response: invalid } = await parseBody(req, jobInputSchema)
   if (invalid) return invalid
+  if (data.aiProvider && !(await isSelectableModel(data.aiProvider, data.aiModel))) {
+    return jsonError("Validation failed", 400, { fieldErrors: { aiModel: ["This model is not active in Settings → Model pricing"] } })
+  }
 
   // Retry on the (very unlikely) slug collision
   let job

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { getStorage } from "@/lib/storage"
 import { getLanguage } from "@/lib/languages"
 import { synthesizeSpeech } from "@/lib/tts/server"
+import { getTtsSettings } from "@/lib/settings"
 import { authorizeInterview, checkLimits, handleInterviewError, interviewError } from "@/lib/interview/http"
 import { LIMITS } from "@/lib/rate-limit"
 
@@ -14,7 +15,8 @@ export async function POST(req, { params }) {
   const { interview, response } = await authorizeInterview(req, id)
   if (response) return response
 
-  if (process.env.TTS_MODE === "browser") return interviewError("tts_disabled", 404)
+  const tts = await getTtsSettings()
+  if (tts.mode === "browser") return interviewError("tts_disabled", 404)
 
   const limited = checkLimits(req, [[`tts:interview:${id}`, LIMITS.ttsPerInterview]])
   if (limited) return limited
@@ -28,7 +30,7 @@ export async function POST(req, { params }) {
   if (!message) return interviewError("not_found", 404)
 
   try {
-    const voice = getLanguage(interview.language)?.tts.serverVoice ?? "nova"
+    const voice = tts.voices[interview.language] ?? getLanguage(interview.language)?.tts.serverVoice ?? "nova"
     const { key } = await synthesizeSpeech({
       text: message.content.slice(0, 1000),
       voice,
