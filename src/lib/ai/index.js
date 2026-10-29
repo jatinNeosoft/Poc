@@ -13,6 +13,7 @@ export { AIConfigError, AIResponseError } from "./errors"
  * @param {string} opts.model
  * @param {string} opts.system
  * @param {{role: "user"|"assistant", content: string}[]} opts.messages
+ * @param {string} [opts.turnContext] per-turn instructions sent after the messages (keeps the cached prefix stable)
  * @param {import("zod").ZodObject} opts.schema
  * @param {string} opts.purpose AIPurpose enum value
  * @param {string} [opts.jobId]
@@ -30,8 +31,7 @@ export async function generateStructured({ provider, purpose, jobId, interviewId
     purpose,
     jobId,
     interviewId,
-    inputTokens: result.usage.inputTokens,
-    outputTokens: result.usage.outputTokens,
+    ...result.usage,
   })
 
   return result

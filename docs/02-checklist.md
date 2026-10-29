@@ -33,35 +33,36 @@ Mark `[x]` when done and verified. Each item has a short acceptance check.
 - [x] Model pricing seeded (3 Claude + 4 OpenAI models, checked 2026-10-29)
 
 ## Phase 3 — AI interview (candidate)
-- [ ] Provider interface + Claude provider + OpenAI provider (forced tool / function call)
-- [ ] `languages/en.json`, `languages/hi.json` + prompt files `prompts/en/*`, `prompts/hi/*`; auto-discovered (no i18n library)
-- [ ] `/apply/[slug]`: mobile-first, big buttons; closed-job screen
-- [ ] Language picker (Hindi / English)
-- [ ] Voice-first chat UI: big 🎤 button as the main input, every AI question spoken aloud
-- [ ] Speech-to-text (Web Speech API, `hi-IN` / `en-IN`) sends the text + confidence
-- [ ] "Type instead" backup link; typing opens automatically if the browser has no speech-to-text
-- [ ] Speaker toggle (on by default) + 🔊 replay on each AI message
-- [ ] TTS voice matches the language: Hindi → `hi-IN` voice, English → `en-IN` voice (from `languages/<code>.json`)
-- [ ] Voice picking: preferred voice → exact lang → lang prefix → server TTS (Hindi is never read by an English voice)
-- [ ] `/api/tts` server fallback (OpenAI TTS driver; Google driver optional), cached, rate-limited, cost logged
-- [ ] Settings: TTS mode (browser/server/auto) + server voice per language
-- [ ] Server step machine: GREETING → CV → VIDEO → SCREENING → DONE
-- [ ] Each answer saved into the correct CV field (checked in the DB, not just the chat text)
-- [ ] Answer check 1, quality: relevant / clear / valid / misheard → GOOD / OKAY / POOR
-- [ ] Hard rules in code (phone 10 digits, age 18–65, numbers) on top of the AI check
-- [ ] Low speech-to-text confidence (below 0.6) → "Did you say …?" confirmation
-- [ ] POOR → gentle re-ask in simpler words, max 2 retries, then flag + move on
-- [ ] Answer check 2, job fit: POSITIVE / NEUTRAL / NEGATIVE + reason, never shown to the candidate
-- [ ] Every attempt saved in `AnswerCheck`; candidate `flaggedCount` updated
-- [ ] Duplicate block: same job + phone that's already submitted → polite stop
-- [ ] Optional video: MediaRecorder 30–60 s, preview, retake, upload; "no" is never asked again
-- [ ] Storage abstraction: `local` driver writes to `/uploads`, `s3` driver stub with the same interface
-- [ ] Screening: custom questions first, then AI-generated ones; answers saved in `ScreeningAnswer`
-- [ ] Thank-you screen; interview `COMPLETED`, `endedAt` set
-- [ ] Summary + fit score (1–10) + reason generated after completion
-- [ ] Resume: close the tab, reopen the link, and the chat continues
-- [ ] Rate limit on public endpoints (per IP + per interview) → 429 with a friendly message
-- [ ] Usage + cost logged for every AI call
+- [x] Provider interface + Claude provider + OpenAI provider (structured outputs, shared Zod schema)
+- [x] `languages/en.json`, `languages/hi.json` + prompt files `prompts/en/*`, `prompts/hi/*`; auto-discovered (no i18n library)
+- [x] `/apply/[slug]`: mobile-first, big buttons; closed-job screen; Noto Sans Devanagari font
+- [x] Language picker (Hindi / English)
+- [x] Voice-first chat UI: big 🎤 button as the main input, every AI question spoken aloud
+- [x] Speech-to-text (Web Speech API, `hi-IN` / `en-IN`) sends the text + confidence (code done; ⏳ *needs a real phone — headless Chrome has no speech service*)
+- [x] "Type instead" backup link; typing opens automatically if the browser has no speech-to-text
+- [x] Speaker toggle (on by default) + 🔊 replay on each AI message
+- [x] TTS voice matches the language (from `languages/<code>.json`)
+- [x] Voice picking: preferred voice → exact lang → lang prefix → server TTS (Hindi is never read by an English voice) (⏳ *device-voice path needs a real phone; server path tested: 19 Hindi MP3s*)
+- [x] `/api/interview/[id]/tts` server fallback (OpenAI `tts-1`, per-character cost logged exactly), cached on disk, rate-limited, only speaks this interview’s own AI messages
+- [ ] Settings: TTS mode (browser/server/auto) + server voice per language → moved to Phase 5 (Settings page); today: `TTS_MODE` env + `serverVoice` in the language file
+- [x] Server step machine: GREETING → CV → VIDEO → SCREENING → DONE
+- [x] Each answer saved into the correct CV field (verified in DB: names transliterated, Hindi number words → digits, previous jobs structured)
+- [x] Answer check 1, quality: relevant / clear / valid / misheard → GOOD / OKAY / POOR
+- [x] Hard rules in code (phone 10 digits starting 6–9, age 18–65, numbers) on top of the AI check; canned re-ask in the candidate’s language
+- [x] Low speech-to-text confidence (below 0.6) → passed to the AI to confirm "Did you say …?"
+- [x] POOR → gentle re-ask in simpler words, max 2 retries, then flag + move on (verified: screening answer flagged after 3 unclear tries)
+- [x] Answer check 2, job fit: POSITIVE / NEUTRAL / NEGATIVE + reason, never shown to the candidate
+- [x] Every attempt saved in `AnswerCheck`; candidate `flaggedCount` updated
+- [x] Duplicate block: same job + phone already submitted → polite stop (DUPLICATE); same phone still in progress on another device → old one ABANDONED, new one continues
+- [x] Optional video: MediaRecorder up to 60 s (min 5 s), timer, review, retake, upload; "no" is never asked again (verified with fake camera: real WebM stored)
+- [x] Storage abstraction: `local` driver writes to `/uploads`, `s3` driver stub with the same interface; admin-only `/api/media/*` with Range support
+- [x] Screening: custom questions first, then AI-generated ones; answers saved in `ScreeningAnswer` with quality/fit
+- [x] Thank-you screen; interview `COMPLETED`, `endedAt` set; reload still shows "submitted"
+- [x] Summary + fit score (1–10) + reason generated after completion (in the background via `after()`)
+- [x] Resume: reload the page → the chat continues (verified in browser)
+- [x] Rate limit on public endpoints (per IP + per interview) → 429 with a friendly message
+- [x] Usage + cost logged for every AI call, including prompt-cache reads/writes (cost uses discounted cache prices)
+- [ ] Test on a real Android phone over HTTPS (mic, Hindi voice, camera) ⏳
 
 ## Phase 4 — Candidates
 - [ ] List with columns: name, phone, job, experience, location, status, interview date, has video

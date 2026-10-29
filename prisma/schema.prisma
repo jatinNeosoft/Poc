@@ -159,6 +159,7 @@ model Interview {
   step         InterviewStep   @default(GREETING)
   videoChoice  VideoChoice     @default(PENDING)
   screeningIdx Int             @default(0)
+  progress     Json            @default("{}") // { done: [target], attempts: {target: n}, flagged: [target] }
   resumeToken  String          @unique
   startedAt    DateTime        @default(now())
   endedAt      DateTime?
@@ -236,20 +237,22 @@ model Video {
 }
 
 model AIUsage {
-  id           String     @id @default(cuid())
-  interviewId  String?
-  interview    Interview? @relation(fields: [interviewId], references: [id])
-  jobId        String?
-  job          Job?       @relation(fields: [jobId], references: [id])
-  purpose      AIPurpose
-  provider     AIProvider
-  model        String
-  inputTokens  Int
-  outputTokens Int
-  costUsd      Decimal    @db.Decimal(12, 6)
-  costInr      Decimal    @db.Decimal(12, 4)
-  usdToInr     Decimal    @db.Decimal(10, 4) // rate snapshot
-  createdAt    DateTime   @default(now())
+  id               String     @id @default(cuid())
+  interviewId      String?
+  interview        Interview? @relation(fields: [interviewId], references: [id])
+  jobId            String?
+  job              Job?       @relation(fields: [jobId], references: [id])
+  purpose          AIPurpose
+  provider         AIProvider
+  model            String
+  inputTokens      Int
+  outputTokens     Int
+  cacheReadTokens  Int        @default(0) // part of inputTokens served from prompt cache (cheaper)
+  cacheWriteTokens Int        @default(0) // part of inputTokens written to prompt cache (Claude: 1.25x)
+  costUsd          Decimal    @db.Decimal(12, 6)
+  costInr          Decimal    @db.Decimal(12, 4)
+  usdToInr         Decimal    @db.Decimal(10, 4) // rate snapshot
+  createdAt        DateTime   @default(now())
 
   @@index([createdAt])
   @@index([provider])

@@ -1,0 +1,48 @@
+{
+  "code": "en",
+  "name": "English",
+  "nativeName": "English",
+  "order": 2,
+  "sttLang": "en-IN",
+  "tts": {
+    "lang": "en-IN",
+    "preferredVoices": ["Google English (India)", "Microsoft Neerja", "Microsoft Heera", "Rishi", "Veena"],
+    "rate": 0.95,
+    "serverVoice": "nova"
+  },
+  "labels": {
+    "chooseLanguage": "Choose your language",
+    "start": "Start",
+    "tapToSpeak": "Tap to speak",
+    "listening": "Listening… tap to stop",
+    "thinking": "Thinking…",
+    "typeInstead": "Type instead",
+    "speakInstead": "Speak instead",
+    "typePlaceholder": "Type your answer",
+    "send": "Send",
+    "speakerOn": "Voice on",
+    "speakerOff": "Voice off",
+    "replay": "Play again",
+    "recordVideo": "Record video",
+    "startRecording": "Start recording",
+    "stopRecording": "Stop",
+    "retake": "Record again",
+    "useVideo": "Send this video",
+    "skipVideo": "Skip video",
+    "uploading": "Sending video…",
+    "cameraError": "Camera could not start. You can skip the video.",
+    "submitted": "Your application has been submitted. Thank you!",
+    "alreadyApplied": "You have already applied for this job with this phone number. Thank you!",
+    "jobClosed": "This job is closed.",
+    "jobNotFound": "This job link is not valid.",
+    "networkError": "Network problem. Please try again.",
+    "tooFast": "Please wait a moment and try again.",
+    "noSpeech": "I could not hear you. Please try again.",
+    "micBlocked": "Microphone is blocked. Please type your answer.",
+    "retry": "Try again",
+    "reask": {
+      "phone": "Sorry, the mobile number should have 10 digits. Please tell me your mobile number again.",
+      "age": "Sorry, I did not get your age. Please tell me your age in years."
+    }
+  }
+}

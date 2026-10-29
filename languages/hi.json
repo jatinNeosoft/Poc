@@ -1,0 +1,48 @@
+{
+  "code": "hi",
+  "name": "Hindi",
+  "nativeName": "हिंदी",
+  "order": 1,
+  "sttLang": "hi-IN",
+  "tts": {
+    "lang": "hi-IN",
+    "preferredVoices": ["Google हिन्दी", "Microsoft Swara", "Microsoft Kalpana", "Lekha"],
+    "rate": 0.9,
+    "serverVoice": "nova"
+  },
+  "labels": {
+    "chooseLanguage": "अपनी भाषा चुनें",
+    "start": "शुरू करें",
+    "tapToSpeak": "बोलने के लिए दबाएँ",
+    "listening": "सुन रहे हैं… रोकने के लिए दबाएँ",
+    "thinking": "सोच रहे हैं…",
+    "typeInstead": "लिखकर बताएँ",
+    "speakInstead": "बोलकर बताएँ",
+    "typePlaceholder": "अपना जवाब लिखें",
+    "send": "भेजें",
+    "speakerOn": "आवाज़ चालू",
+    "speakerOff": "आवाज़ बंद",
+    "replay": "फिर से सुनें",
+    "recordVideo": "वीडियो बनाएँ",
+    "startRecording": "रिकॉर्डिंग शुरू करें",
+    "stopRecording": "रोकें",
+    "retake": "दोबारा बनाएँ",
+    "useVideo": "यह वीडियो भेजें",
+    "skipVideo": "वीडियो छोड़ें",
+    "uploading": "वीडियो भेज रहे हैं…",
+    "cameraError": "कैमरा चालू नहीं हुआ। आप वीडियो छोड़ सकते हैं।",
+    "submitted": "आपका आवेदन जमा हो गया है। धन्यवाद!",
+    "alreadyApplied": "आप इस फ़ोन नंबर से इस नौकरी के लिए पहले ही आवेदन कर चुके हैं। धन्यवाद!",
+    "jobClosed": "यह नौकरी बंद हो गई है।",
+    "jobNotFound": "यह लिंक सही नहीं है।",
+    "networkError": "नेटवर्क में दिक्कत है। कृपया फिर से कोशिश करें।",
+    "tooFast": "थोड़ा रुककर फिर से कोशिश करें।",
+    "noSpeech": "आपकी आवाज़ सुनाई नहीं दी। कृपया फिर से बोलें।",
+    "micBlocked": "माइक बंद है। कृपया लिखकर जवाब दें।",
+    "retry": "फिर से कोशिश करें",
+    "reask": {
+      "phone": "माफ़ कीजिए, मोबाइल नंबर 10 अंकों का होना चाहिए। कृपया अपना मोबाइल नंबर फिर से बताइए।",
+      "age": "माफ़ कीजिए, आपकी उम्र समझ नहीं आई। कृपया अपनी उम्र सालों में बताइए।"
+    }
+  }
+}

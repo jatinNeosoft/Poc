@@ -42,6 +42,29 @@ Planning docs: [`docs/01-workflow.md`](docs/01-workflow.md), [`docs/02-checklist
 | `npm run db:seed` | Create or reset the admin user from `.env` |
 | `npm run db:studio` | Browse the DB in Prisma Studio |
 
+## Candidate interview
+
+- Public link: `/apply/<job-slug>` (also in the job's QR code). Voice-first: browser speech-to-text, AI replies read aloud.
+- **Mic and camera need HTTPS on phones** (only `localhost` is exempt). To test on a real phone, expose the dev server with a tunnel (e.g. `ngrok http 3000`) and set `APP_BASE_URL` to the tunnel URL so the QR code points there.
+- Read-aloud: `TTS_MODE=auto` uses the phone's own voice for the language and falls back to OpenAI `tts-1` (costs ~₹0.13 per message, logged) when the phone has none. `browser` = phone voice only, `server` = always server.
+- Videos and cached TTS audio are stored in `/uploads` (`STORAGE_DRIVER=local`). Admins view videos via `/api/media/...`.
+
+### Adding a language (no code changes)
+
+1. Copy `languages/en.json` → `languages/<code>.json`; set `code`, `name`, `nativeName`, `sttLang` / `tts.lang` (e.g. `mr-IN`), preferred voice names, and translate the `labels`.
+2. Copy `prompts/en/system.md` → `prompts/<code>/system.md` and adapt the "Language and style" section. (Other prompts fall back to English.)
+3. Restart the app. The language appears on the language screen automatically.
+
+### AI cost per interview (measured 2026-10-29, ~25 turns)
+
+| Model | Cost per interview |
+|---|---|
+| `claude-opus-5-5` (default) | ~₹28 (with prompt caching) |
+| `claude-haiku-5-5` | ~₹0.6 |
+| Server voice (`tts-1`), only if the phone has no voice | ~₹2.8 |
+
+Choose the model per job (Jobs → Edit → AI model).
+
 ## Notes
 - shadcn/ui runs in JS mode (`components.json` → `"tsx": false`) with the `base-nova` style (Base UI primitives: use `render={<Link />}` instead of `asChild`).
 - npm 12 blocks package install scripts by default. The Prisma packages and `unrs-resolver` are approved in `package.json` (`allowScripts`).
