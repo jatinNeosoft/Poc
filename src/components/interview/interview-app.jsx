@@ -24,6 +24,7 @@ export function InterviewApp({ job, languages, ttsMode }) {
   const [pending, setPending] = useState(null) // { text, inputMode, sttConfidence } while sending
   const [error, setError] = useState(null) // { label, retry? }
   const [voiceOn, setVoiceOn] = useState(true)
+  const [listenAfter, setListenAfter] = useState(null) // AI message id: open the mic by itself once it's been read
   const lastSpokenRef = useRef(null)
 
   const lang = languages.find((l) => l.code === langCode) ?? null
@@ -65,12 +66,14 @@ export function InterviewApp({ job, languages, ttsMode }) {
       })
   }, [job.slug, job.closed])
 
-  // Read each new AI message aloud
+  // Read each new AI message aloud, then start listening for the answer (hands-free).
+  // Not if the speech was cut off (mic tapped, replay…), so the mic never hears the AI's own voice.
   useEffect(() => {
     const last = state?.messages.at(-1)
     if (!last || last.role !== "assistant" || last.id === lastSpokenRef.current) return
     lastSpokenRef.current = last.id
-    if (voiceOn) speaker.speak(last.id, last.content)
+    if (!voiceOn) return setListenAfter(last.id)
+    speaker.speak(last.id, last.content).then((finished) => finished && setListenAfter(last.id))
   }, [state, voiceOn, speaker])
 
   async function start(code) {
@@ -190,6 +193,7 @@ export function InterviewApp({ job, languages, ttsMode }) {
           busy={!!pending && !error}
           error={error}
           onSend={send}
+          autoListenKey={listenAfter}
           onBeforeListen={speaker.stop}
           onError={setError}
         />

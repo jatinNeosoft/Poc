@@ -26,6 +26,7 @@ export function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [error, setError] = useState("")
+  const [redirecting, setRedirecting] = useState(false) // signed in, waiting for the dashboard to load
 
   const {
     register,
@@ -41,6 +42,7 @@ export function LoginForm() {
       setError("Wrong email or password.")
       return
     }
+    setRedirecting(true)
     router.replace(safeCallback(searchParams.get("callbackUrl")))
     router.refresh()
   }
@@ -80,9 +82,9 @@ export function LoginForm() {
             </p>
           )}
 
-          <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
-            {isSubmitting && <Loader2 className="animate-spin" />}
-            Sign in
+          <Button type="submit" size="lg" className="w-full" disabled={isSubmitting || redirecting}>
+            {(isSubmitting || redirecting) && <Loader2 className="animate-spin" />}
+            {redirecting ? "Opening dashboard…" : isSubmitting ? "Signing in…" : "Sign in"}
           </Button>
         </form>
       </CardContent>

@@ -1,16 +1,24 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Keyboard, Mic, Send, Square } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useSpeechRecognition } from "@/hooks/use-speech-recognition"
 import { ErrorBanner } from "./error-banner"
 
-/** Voice-first answer box: big mic button, "type instead" as backup. */
-export function Composer({ lang, labels, busy, error, onSend, onBeforeListen, onError }) {
+// Hands-free: if nobody speaks after the mic opened by itself, listen again this many times
+const AUTO_RETRIES = 1
+
+/**
+ * Voice-first answer box: big mic button, "type instead" as backup.
+ * Hands-free: the mic opens by itself whenever autoListenKey changes (after each AI question is read)
+ * and closes by itself when the candidate stops talking.
+ */
+export function Composer({ lang, labels, busy, error, onSend, autoListenKey, onBeforeListen, onError }) {
   const [mode, setMode] = useState("voice")
   const [text, setText] = useState("")
   const [hint, setHint] = useState(null) // label key shown under the mic
+  const retriesRef = useRef(0)
 
   const stt = useSpeechRecognition({
     lang: lang.sttLang,
@@ -23,7 +31,12 @@ export function Composer({ lang, labels, busy, error, onSend, onBeforeListen, on
         setHint("micBlocked")
         setMode("text")
       } else if (code === "no-speech") {
-        setHint("noSpeech")
+        if (retriesRef.current > 0) {
+          retriesRef.current--
+          stt.start()
+        } else {
+          setHint("noSpeech")
+        }
       } else {
         onError({ label: "networkError" })
       }
@@ -35,7 +48,20 @@ export function Composer({ lang, labels, busy, error, onSend, onBeforeListen, on
     if (stt.supported === false) setMode("text")
   }, [stt.supported])
 
+  // Latest values for the auto-listen effect, which should only re-run when the key changes
+  const latest = useRef({})
+  latest.current = { busy, mode, start: stt.start }
+
+  useEffect(() => {
+    const { busy, mode, start } = latest.current
+    if (!autoListenKey || busy || mode !== "voice") return
+    retriesRef.current = AUTO_RETRIES
+    setHint(null)
+    start()
+  }, [autoListenKey])
+
   function toggleMic() {
+    retriesRef.current = 0
     if (stt.listening) return stt.stop()
     onBeforeListen()
     setHint(null)
@@ -74,6 +100,7 @@ export function Composer({ lang, labels, busy, error, onSend, onBeforeListen, on
           <button
             type="button"
             onClick={() => {
+              retriesRef.current = 0
               stt.stop()
               setMode("text")
             }}

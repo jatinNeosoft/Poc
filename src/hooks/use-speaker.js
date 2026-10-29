@@ -35,13 +35,16 @@ function loadVoices() {
  * Reads AI messages aloud in the interview language.
  * mode: "browser" (device voice only), "server" (always server MP3), "auto" (device voice, server if none).
  * fetchServerAudio(messageId) → Promise<Blob> for the server fallback.
+ * speak() resolves true when the text was read to the end, false if stop() cut it off.
  */
 export function useSpeaker({ tts, mode = "auto", fetchServerAudio }) {
   const [speakingId, setSpeakingId] = useState(null)
   const voiceRef = useRef(undefined) // undefined = not looked up yet, null = none on this device
   const audioRef = useRef(null)
+  const stopCountRef = useRef(0) // bumped by every stop(), so speak() can tell it was interrupted
 
   const stop = useCallback(() => {
+    stopCountRef.current++
     if (typeof window !== "undefined" && window.speechSynthesis) window.speechSynthesis.cancel()
     if (audioRef.current) {
       audioRef.current.pause()
@@ -68,7 +71,9 @@ export function useSpeaker({ tts, mode = "auto", fetchServerAudio }) {
   const speak = useCallback(
     async (id, text) => {
       stop()
-      if (typeof window === "undefined") return
+      if (typeof window === "undefined") return false
+      const myStop = stopCountRef.current
+      const finished = () => stopCountRef.current === myStop
       setSpeakingId(id)
       try {
         const synth = window.speechSynthesis
@@ -85,12 +90,14 @@ export function useSpeaker({ tts, mode = "auto", fetchServerAudio }) {
               u.onerror = resolve
               synth.speak(u)
             })
-            return
+            return finished()
           }
         }
         if (mode !== "browser") await playServer(id)
+        return finished()
       } catch {
         // Speech is a convenience: the text is always on screen
+        return finished()
       } finally {
         setSpeakingId((cur) => (cur === id ? null : cur))
       }

@@ -104,7 +104,7 @@ export function stateBlock({ interview, candidate, questions, progress, target, 
         lines.push(
           "Step: SCREENING QUESTIONS. The server asks each question itself.",
           `CURRENT question ${interview.screeningIdx + 1} of ${questions.length} — the candidate is answering THIS one now: "${q?.localized}" (English: "${q?.text}")${attemptNote}.`,
-          `If the answer is usable: put a short English summary of the answer to THIS question in screeningAnswer, and reply with ONE short acknowledgement only (for example "ठीक है, धन्यवाद।" / "Okay, thank you."). ${SERVER_CONTINUES}`,
+          `If the answer is usable: put a short English summary of the answer to THIS question in screeningAnswer, and reply with ONE very short natural acknowledgement only, different from your previous ones (for example "अच्छा।" / "ठीक है।" / "Okay." / "Alright."). No "thank you", and never say you noted or recorded it. ${SERVER_CONTINUES}`,
           "If it is not usable: leave screeningAnswer null and ask the CURRENT question again in simpler words."
         )
       }
