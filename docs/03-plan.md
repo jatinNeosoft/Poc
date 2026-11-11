@@ -90,7 +90,7 @@ The voice changes with the candidate's chosen language: Hindi replies are spoken
 - **Server TTS fallback** (`/api/tts`, rate-limited) works through a `ttsProvider` interface. The first driver is OpenAI TTS, with Google Cloud TTS (`hi-IN` / `en-IN` Wavenet voices) as an option. It returns an MP3 that the chat plays. Generated audio is cached by a hash of the text and voice, and its cost is logged in `AIUsage` with the purpose `TTS`.
 - **UI**: one large speaker toggle (on by default) and a 🔊 replay button on each AI message. When the language changes, the voice changes immediately.
 - **Admin Settings**: the TTS mode (`browser` / `server` / `auto`, default `auto`) and the server voice for each language.
-- **Env**: `TTS_MODE=auto`, `TTS_PROVIDER=openai`.
+- **Env**: `TTS_MODE=server`, `GOOGLE_TTS_API_KEY` (Google Cloud TTS only — OpenAI TTS was removed).
 
 ### shadcn/ui components used
 | Where | Components |
@@ -383,7 +383,7 @@ ANTHROPIC_API_KEY=
 OPENAI_API_KEY=
 USD_TO_INR=84
 TTS_MODE=auto                 # browser | server | auto
-TTS_PROVIDER=openai           # openai | google
+GOOGLE_TTS_API_KEY=           # Google Cloud Text-to-Speech
 STORAGE_DRIVER=local          # local | s3
 RATE_LIMIT_PER_MIN=20
 ```

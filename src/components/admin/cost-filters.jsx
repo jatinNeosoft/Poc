@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { PROVIDER_LABELS } from "@/lib/ai/models"
+import { COST_PROVIDER_LABELS } from "@/lib/ai/models"
 
 const ALL = "ALL"
 
@@ -85,7 +85,7 @@ export function CostFilters({ jobs }) {
         label="Providers"
         value={params.get("provider")}
         onChange={(v) => update({ provider: v })}
-        options={Object.entries(PROVIDER_LABELS).map(([value, label]) => ({ value, label }))}
+        options={Object.entries(COST_PROVIDER_LABELS).map(([value, label]) => ({ value, label }))}
       />
       <FilterSelect
         label="Jobs"

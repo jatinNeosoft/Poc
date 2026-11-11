@@ -1,10 +1,10 @@
 import { z } from "zod"
 
-// USD per 1M tokens (or per 1M characters for tts-* models)
+// USD per 1M tokens (or per 1M characters for tts-* models, e.g. Google "tts-google-chirp3-hd")
 const price = z.number({ error: "Enter a number" }).min(0, "Cannot be negative").max(1000, "Too large")
 
 export const pricingCreateSchema = z.object({
-  provider: z.enum(["CLAUDE", "OPENAI"]),
+  provider: z.enum(["CLAUDE", "OPENAI", "GOOGLE"]),
   model: z
     .string()
     .trim()

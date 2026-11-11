@@ -9,16 +9,23 @@ import { ErrorBanner } from "./error-banner"
 // Hands-free: if nobody speaks after the mic opened by itself, listen again this many times
 const AUTO_RETRIES = 1
 
+// iPhone / iPad (iPadOS reports itself as a Mac with a touch screen)
+function isIOS() {
+  if (typeof navigator === "undefined") return false
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+}
+
 /**
  * Voice-first answer box: big mic button, "type instead" as backup.
  * Hands-free: the mic opens by itself whenever autoListenKey changes (after each AI question is read)
  * and closes by itself when the candidate stops talking.
  */
-export function Composer({ lang, labels, busy, error, onSend, autoListenKey, onBeforeListen, onError }) {
+export function Composer({ lang, labels, busy, error, onSend, autoListenKey, onBeforeListen, onUserGesture, onError }) {
   const [mode, setMode] = useState("voice")
   const [text, setText] = useState("")
   const [hint, setHint] = useState(null) // label key shown under the mic
   const retriesRef = useRef(0)
+  const autoRef = useRef(false) // the current mic session was opened by itself (not by a tap)
 
   const stt = useSpeechRecognition({
     lang: lang.sttLang,
@@ -27,8 +34,18 @@ export function Composer({ lang, labels, busy, error, onSend, autoListenKey, onB
       onSend({ text: transcript, inputMode: "voice", sttConfidence: confidence })
     },
     onError: (code) => {
-      if (code === "not-allowed" || code === "service-not-allowed" || code === "audio-capture") {
+      // iPhone only opens the mic from a tap: a refused hands-free start just means "tap to speak"
+      if (autoRef.current && (code === "not-allowed" || code === "service-not-allowed")) {
+        autoRef.current = false
+        setHint(null)
+        return
+      }
+      if (code === "not-allowed" || code === "audio-capture") {
         setHint("micBlocked")
+        setMode("text")
+      } else if (code === "network" || code === "service-not-allowed" || code === "language-not-supported") {
+        // The browser's speech service is unavailable (e.g. Brave, some Edge setups, offline)
+        setHint("sttUnavailable")
         setMode("text")
       } else if (code === "no-speech") {
         if (retriesRef.current > 0) {
@@ -55,14 +72,38 @@ export function Composer({ lang, labels, busy, error, onSend, autoListenKey, onB
   useEffect(() => {
     const { busy, mode, start } = latest.current
     if (!autoListenKey || busy || mode !== "voice") return
+    // iPhone/iPad only record when the mic is opened by a tap; a self-opened mic there looks
+    // like it is listening but hears nothing. So on iOS: no hands-free, the candidate taps.
+    if (isIOS()) return setHint(null)
     retriesRef.current = AUTO_RETRIES
+    autoRef.current = true
     setHint(null)
     start()
   }, [autoListenKey])
 
   function toggleMic() {
+    // No onUserGesture() here: playing the unlock sound right before recording can stop iPhone
+    // from opening the mic. The audio player is already unlocked by the language tap.
+    if (stt.listening) {
+      // Words heard → this tap means "done", send the answer
+      if (stt.interim) {
+        retriesRef.current = 0
+        stt.stop()
+        return
+      }
+      // Nothing heard yet in a session the page opened by itself: replace it with one started by
+      // this tap (iPhone may show such a session as listening while recording nothing)
+      if (autoRef.current) {
+        retriesRef.current = 0
+        autoRef.current = false
+        setHint(null)
+        stt.restart()
+      }
+      // Nothing heard yet in a session the candidate started: keep listening (an early tap must not stop it)
+      return
+    }
     retriesRef.current = 0
-    if (stt.listening) return stt.stop()
+    autoRef.current = false
     onBeforeListen()
     setHint(null)
     stt.start()
@@ -72,6 +113,7 @@ export function Composer({ lang, labels, busy, error, onSend, autoListenKey, onB
     e.preventDefault()
     const value = text.trim()
     if (!value || busy) return
+    onUserGesture?.()
     onSend({ text: value, inputMode: "text", sttConfidence: null })
     setText("")
   }
@@ -89,13 +131,14 @@ export function Composer({ lang, labels, busy, error, onSend, autoListenKey, onB
             type="button"
             onClick={toggleMic}
             disabled={busy}
-            aria-label={stt.listening ? labels.listening : labels.tapToSpeak}
+            aria-label={stt.listening ? (stt.interim ? labels.stopRecording : labels.listening) : labels.tapToSpeak}
             className={cn(
               "flex size-24 items-center justify-center rounded-full text-white shadow-lg transition active:scale-95 disabled:opacity-40",
               stt.listening ? "animate-pulse bg-red-500" : "bg-primary"
             )}
           >
-            {stt.listening ? <Square className="size-9 fill-current" /> : <Mic className="size-11" />}
+            {/* Mic while waiting for speech; a stop square once words are heard (tap = done) */}
+            {stt.listening && stt.interim ? <Square className="size-9 fill-current" /> : <Mic className="size-11" />}
           </button>
           <button
             type="button"

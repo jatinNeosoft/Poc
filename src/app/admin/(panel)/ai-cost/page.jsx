@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, Table
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CostFilters } from "@/components/admin/cost-filters"
 import { DailyCostChart } from "@/components/admin/daily-cost-chart"
-import { PROVIDER_LABELS, modelLabel } from "@/lib/ai/models"
+import { COST_PROVIDER_LABELS, modelLabel } from "@/lib/ai/models"
 import { formatDuration } from "@/lib/candidates/format"
 import {
   getCostByJob,
@@ -187,7 +187,7 @@ export default async function AiCostPage({ searchParams }) {
                   </TableCell>
                   <TableCell>{r.jobTitle}</TableCell>
                   <TableCell className="text-muted-foreground">
-                    {PROVIDER_LABELS[r.provider]}
+                    {COST_PROVIDER_LABELS[r.provider]}
                     <div className="text-xs">{r.model}</div>
                   </TableCell>
                   <TableCell className="tabular-nums">{r.messages}</TableCell>
@@ -283,7 +283,7 @@ export default async function AiCostPage({ searchParams }) {
               totals={totals}
               render={(r) => (
                 <TableRow key={`${r.provider}:${r.model}`}>
-                  <TableCell className="pl-4">{PROVIDER_LABELS[r.provider]}</TableCell>
+                  <TableCell className="pl-4">{COST_PROVIDER_LABELS[r.provider]}</TableCell>
                   <TableCell>
                     {modelLabel(r.provider, r.model)}
                     {r.model.startsWith("tts") && <div className="text-xs text-muted-foreground">input = characters</div>}

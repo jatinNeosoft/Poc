@@ -48,6 +48,7 @@ enum MessageRole {
 enum AIProvider {
   CLAUDE
   OPENAI
+  GOOGLE // server text-to-speech only (Google Cloud TTS), never a chat model
 }
 
 enum AIPurpose {

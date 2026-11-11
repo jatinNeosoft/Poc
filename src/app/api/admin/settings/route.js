@@ -3,7 +3,8 @@ import { z } from "zod"
 import { jsonError, parseBody, requireAdmin } from "@/lib/api"
 import { isSelectableModel } from "@/lib/ai/catalog"
 import { getLanguages } from "@/lib/languages"
-import { TTS_MODES, TTS_VOICES, writeSetting } from "@/lib/settings"
+import { TTS_MODES, writeSetting } from "@/lib/settings"
+import { ALL_TTS_VOICES } from "@/lib/tts/server"
 
 const bodySchema = z.discriminatedUnion("section", [
   z.object({
@@ -15,7 +16,7 @@ const bodySchema = z.discriminatedUnion("section", [
   z.object({
     section: z.literal("tts"),
     mode: z.enum(TTS_MODES),
-    voices: z.record(z.string(), z.enum(TTS_VOICES)),
+    voices: z.record(z.string(), z.enum(ALL_TTS_VOICES)),
   }),
   z.object({
     section: z.literal("currency"),

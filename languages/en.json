@@ -6,15 +6,21 @@
   "sttLang": "en-IN",
   "tts": {
     "lang": "en-IN",
-    "preferredVoices": ["Google English (India)", "Microsoft Neerja", "Microsoft Heera", "Rishi", "Veena"],
+    "preferredVoices": [
+      "Google English (India)",
+      "Microsoft Neerja",
+      "Microsoft Heera",
+      "Rishi",
+      "Veena"
+    ],
     "rate": 0.95,
-    "serverVoice": "nova"
+    "serverVoice": "Aoede"
   },
   "labels": {
     "chooseLanguage": "Choose your language",
     "start": "Start",
     "tapToSpeak": "Tap to speak",
-    "listening": "Listening… tap to stop",
+    "listening": "Listening… please speak",
     "thinking": "Thinking…",
     "typeInstead": "Type instead",
     "speakInstead": "Speak instead",
@@ -33,6 +39,10 @@
     "cameraError": "Camera could not start. You can skip the video.",
     "submitted": "Your application has been submitted. Thank you!",
     "alreadyApplied": "You have already applied for this job with this phone number. Thank you!",
+    "thankYouTitle": "Thank you!",
+    "appliedFor": "You applied for",
+    "nextSteps": "Our team will look at your answers and call you on your mobile number if you are selected.",
+    "closePage": "You can close this page now.",
     "jobClosed": "This job is closed.",
     "jobNotFound": "This job link is not valid.",
     "networkError": "Network problem. Please try again.",
@@ -43,6 +53,8 @@
     "reask": {
       "phone": "Sorry, the mobile number should have 10 digits. Please tell me your mobile number again.",
       "age": "Sorry, I did not get your age. Please tell me your age in years."
-    }
+    },
+    "sttUnavailable": "Voice answers are not working in this browser. Please type your answer, or open the link in Google Chrome.",
+    "tapToListen": "Tap to hear the question"
   }
 }

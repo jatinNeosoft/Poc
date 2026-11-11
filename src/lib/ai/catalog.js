@@ -1,8 +1,8 @@
 import { prisma } from "@/lib/prisma"
-import { AI_MODELS, modelLabel } from "./models"
+import { AI_MODELS, PROVIDER_LABELS, isTtsModel, modelLabel } from "./models"
 
 // Text-to-speech models have pricing rows too, but are not chat models
-const isChatModel = (model) => !model.startsWith("tts")
+const isChatModel = (provider, model) => provider in PROVIDER_LABELS && !isTtsModel(model)
 
 /**
  * Chat models the admin can pick: every ACTIVE pricing row, so adding a pricing row in
@@ -13,7 +13,7 @@ export async function getModelOptions(include) {
   const rows = await prisma.modelPricing.findMany({ where: { active: true } })
   const options = { CLAUDE: [], OPENAI: [] }
   for (const r of rows) {
-    if (isChatModel(r.model)) options[r.provider].push({ id: r.model, label: modelLabel(r.provider, r.model) })
+    if (isChatModel(r.provider, r.model)) options[r.provider].push({ id: r.model, label: modelLabel(r.provider, r.model) })
   }
   if (include?.provider && include?.model && !options[include.provider].some((m) => m.id === include.model)) {
     options[include.provider].push({ id: include.model, label: `${modelLabel(include.provider, include.model)} (inactive)` })
@@ -29,7 +29,7 @@ export async function getModelOptions(include) {
 }
 
 export async function isSelectableModel(provider, model) {
-  if (!provider || !model || !isChatModel(model)) return false
+  if (!provider || !model || !isChatModel(provider, model)) return false
   const row = await prisma.modelPricing.findUnique({ where: { provider_model: { provider, model } } })
   return !!row?.active
 }

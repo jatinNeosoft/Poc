@@ -45,3 +45,7 @@ next-env.d.ts
 
 # uploaded videos
 /uploads
+
+# Google service-account key (TTS)
+google-tts*.json
+*service-account*.json

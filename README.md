@@ -46,7 +46,7 @@ Planning docs: [`docs/01-workflow.md`](docs/01-workflow.md), [`docs/02-checklist
 
 - Public link: `/apply/<job-slug>` (also in the job's QR code). Voice-first: browser speech-to-text, AI replies read aloud.
 - **Mic and camera need HTTPS on phones** (only `localhost` is exempt). To test on a real phone, expose the dev server with a tunnel (e.g. `ngrok http 3000`) and set `APP_BASE_URL` to the tunnel URL so the QR code points there.
-- Read-aloud: `TTS_MODE=auto` uses the phone's own voice for the language and falls back to OpenAI `tts-1` (costs ~₹0.13 per message, logged) when the phone has none. `browser` = phone voice only, `server` = always server.
+- Read-aloud: Google Cloud Text-to-Speech (Chirp 3 HD `en-IN` / `hi-IN` voices) — set `GOOGLE_TTS_API_KEY`. `TTS_MODE=server` (default) always uses the Google voice (~₹0.30 per message, logged); `auto` uses the phone's own `en-IN`/`hi-IN` voice when it has one; `browser` = phone voice only.
 - Videos and cached TTS audio are stored in `/uploads` (`STORAGE_DRIVER=local`). Admins view videos via `/api/media/...`.
 
 ### Adding a language (no code changes)
@@ -61,7 +61,7 @@ Planning docs: [`docs/01-workflow.md`](docs/01-workflow.md), [`docs/02-checklist
 |---|---|
 | `claude-opus-5-5` | ~₹28 (with prompt caching) |
 | `claude-haiku-5-5` (default) | ~₹0.6 |
-| Server voice (`tts-1`), only if the phone has no voice | ~₹2.8 |
+| Google voice (Chirp 3 HD), every AI message | ~₹6 |
 
 Choose the model per job (Jobs → Edit → AI model), or change the default in **Settings → AI defaults**.
 
@@ -70,7 +70,7 @@ Choose the model per job (Jobs → Edit → AI model), or change the default in 
 **Settings** (stored in the `AppSetting` table) override `.env`:
 - **AI defaults**: provider + default Claude/OpenAI model for jobs set to "Default" (`.env`: `AI_PROVIDER`, `CLAUDE_MODEL`, `OPENAI_MODEL`).
 - **Read-aloud voice**: `auto` / `browser` / `server` + server voice per language (`.env`: `TTS_MODE`).
-- **Model pricing**: US$ per 1M tokens (per 1M characters for `tts-1`). Adding an active row makes that model selectable for jobs.
+- **Model pricing**: US$ per 1M tokens (per 1M characters for `tts-*` voice rows, e.g. `tts-google-chirp3-hd`). Adding an active row makes that model selectable for jobs.
 - **Currency**: ₹ per US$ (`.env`: `USD_TO_INR`). Applies to new AI calls; each usage row keeps the rate it was recorded with.
 
 The **AI Cost** page shows cost per interview and totals by job, day, month, provider/model and purpose.

@@ -16,6 +16,12 @@ export const AI_MODELS = {
 
 export const PROVIDER_LABELS = { CLAUDE: "Claude (Anthropic)", OPENAI: "OpenAI" }
 
+// Everything that can appear in costs/pricing: the chat providers + Google (server voice only)
+export const COST_PROVIDER_LABELS = { ...PROVIDER_LABELS, GOOGLE: "Google Cloud" }
+
+// Pricing rows whose model starts with "tts" are voices billed per character, not chat models
+export const isTtsModel = (model) => model.startsWith("tts")
+
 export function modelLabel(provider, model) {
   return AI_MODELS[provider]?.find((m) => m.id === model)?.label ?? model
 }

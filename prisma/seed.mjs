@@ -33,7 +33,7 @@ async function main() {
     ["OPENAI", "gpt-6.1-terra", 1.0, 5.0],
     ["OPENAI", "gpt-6-luna", 0.1, 0.5],
     // Server text-to-speech: billed per CHARACTER, so "input" here = $ per 1M characters
-    ["OPENAI", "tts-1", 15.0, 0],
+    ["GOOGLE", "tts-google-chirp3-hd", 30.0, 0], // Google Cloud TTS Chirp 3 HD voices (en-IN / hi-IN)
   ]
   for (const [provider, model, inputPerMillionUsd, outputPerMillionUsd] of pricing) {
     await prisma.modelPricing.upsert({

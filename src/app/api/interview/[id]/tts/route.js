@@ -30,10 +30,11 @@ export async function POST(req, { params }) {
   if (!message) return interviewError("not_found", 404)
 
   try {
-    const voice = tts.voices[interview.language] ?? getLanguage(interview.language)?.tts.serverVoice ?? "nova"
+    const lang = getLanguage(interview.language)
     const { key } = await synthesizeSpeech({
       text: message.content.slice(0, 1000),
-      voice,
+      languageCode: lang?.tts.lang ?? "en-IN",
+      voice: tts.voices[interview.language] ?? lang?.tts.serverVoice ?? "Aoede",
       interviewId: id,
       jobId: interview.jobId,
     })

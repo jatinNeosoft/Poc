@@ -4,7 +4,8 @@ import { AiDefaultsForm, CurrencyForm, VoiceSettingsForm } from "@/components/ad
 import { PricingTable } from "@/components/admin/pricing-table"
 import { getModelOptions } from "@/lib/ai/catalog"
 import { getLanguages } from "@/lib/languages"
-import { TTS_VOICES, getAISettings, getTtsSettings, getUsdToInr } from "@/lib/settings"
+import { getAISettings, getTtsSettings, getUsdToInr } from "@/lib/settings"
+import { TTS_VOICES } from "@/lib/tts/server"
 
 export const dynamic = "force-dynamic"
 export const metadata = { title: "Settings — HireVoice" }

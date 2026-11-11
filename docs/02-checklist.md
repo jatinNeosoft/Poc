@@ -43,7 +43,7 @@ Mark `[x]` when done and verified. Each item has a short acceptance check.
 - [x] Speaker toggle (on by default) + 🔊 replay on each AI message
 - [x] TTS voice matches the language (from `languages/<code>.json`)
 - [x] Voice picking: preferred voice → exact lang → lang prefix → server TTS (Hindi is never read by an English voice) (⏳ *device-voice path needs a real phone; server path tested: 19 Hindi MP3s*)
-- [x] `/api/interview/[id]/tts` server fallback (OpenAI `tts-1`, per-character cost logged exactly), cached on disk, rate-limited, only speaks this interview’s own AI messages
+- [x] `/api/interview/[id]/tts` server voice (Google Cloud TTS Chirp 3 HD `en-IN` / `hi-IN`, per-character cost logged exactly), cached on disk, rate-limited, only speaks this interview’s own AI messages
 - [ ] Settings: TTS mode (browser/server/auto) + server voice per language → moved to Phase 5 (Settings page); today: `TTS_MODE` env + `serverVoice` in the language file
 - [x] Server step machine: GREETING → CV → VIDEO → SCREENING → DONE
 - [x] Each answer saved into the correct CV field (verified in DB: names transliterated, Hindi number words → digits, previous jobs structured)
@@ -84,7 +84,7 @@ Mark `[x]` when done and verified. Each item has a short acceptance check.
 - [x] Filters: Last 7 days / Last 30 days / This month / All time, custom dates, provider, job — in the URL
 - [x] Settings → Model pricing: edit prices, add a model (becomes selectable for jobs), activate/deactivate; the default model can’t be deactivated; duplicates refused
 - [x] Settings → AI defaults (provider + Claude/OpenAI model), override `.env`; the job form and new interviews use them
-- [x] Settings → Read-aloud voice: mode (phone first / phone only / always server) + server voice per language (9 `tts-1` voices checked against the API)
+- [x] Settings → Read-aloud voice: mode (phone first / phone only / always server) + server voice per language (Google Chirp 3 HD voices, female/male)
 - [x] Settings → Currency: ₹ per US$ (new AI calls only; past rows keep their rate)
 - [x] Costs calculated from the actual token usage returned by the API (cache reads/writes priced separately)
 

@@ -12,10 +12,9 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { PROVIDER_LABELS, modelLabel } from "@/lib/ai/models"
+import { COST_PROVIDER_LABELS, isTtsModel as isTts, modelLabel } from "@/lib/ai/models"
 
 const usd = (n) => `$${Number(n).toFixed(Number(n) < 1 ? 3 : 2)}`
-const isTts = (model) => model.startsWith("tts")
 
 async function send(url, method, body) {
   const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
@@ -71,13 +70,13 @@ function PricingDialog({ open, onOpenChange, row }) {
                 <Select
                   value={form.provider}
                   onValueChange={(provider) => setForm({ ...form, provider })}
-                  items={Object.entries(PROVIDER_LABELS).map(([value, label]) => ({ value, label }))}
+                  items={Object.entries(COST_PROVIDER_LABELS).map(([value, label]) => ({ value, label }))}
                 >
                   <SelectTrigger id="p-provider" className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.entries(PROVIDER_LABELS).map(([value, label]) => (
+                    {Object.entries(COST_PROVIDER_LABELS).map(([value, label]) => (
                       <SelectItem key={value} value={value}>
                         {label}
                       </SelectItem>
@@ -162,7 +161,7 @@ export function PricingTable({ rows, defaults }) {
         <TableBody>
           {rows.map((r) => (
             <TableRow key={r.id} className={r.active ? "" : "text-muted-foreground"}>
-              <TableCell className="pl-4">{PROVIDER_LABELS[r.provider]}</TableCell>
+              <TableCell className="pl-4">{COST_PROVIDER_LABELS[r.provider]}</TableCell>
               <TableCell>
                 <div className="flex items-center gap-1.5">
                   <span className="font-medium">{modelLabel(r.provider, r.model)}</span>

@@ -123,9 +123,9 @@ export function AiDefaultsForm({ value, models }) {
 }
 
 const TTS_MODE_INFO = {
-  auto: { label: "Phone voice first (recommended)", hint: "Free phone voice when the phone has one for the language; otherwise the server voice." },
+  server: { label: "Always Google voice (recommended)", hint: "Natural Indian English and Hindi voice on every phone. Costs about ₹0.30 per AI message (Google Chirp 3 HD)." },
+  auto: { label: "Phone voice first", hint: "Free phone voice when the phone has one for the language (en-IN / hi-IN); otherwise the Google voice." },
   browser: { label: "Phone voice only", hint: "Never costs anything. Phones without a matching voice show text only." },
-  server: { label: "Always server voice", hint: "Same voice on every phone. Costs about ₹0.13 per AI message (OpenAI tts-1)." },
 }
 
 export function VoiceSettingsForm({ value, languages, voices }) {
@@ -154,7 +154,7 @@ export function VoiceSettingsForm({ value, languages, voices }) {
       </RadioGroup>
 
       <div className="space-y-2">
-        <p className="text-sm font-medium">Server voice per language</p>
+        <p className="text-sm font-medium">Google voice per language</p>
         <div className="grid gap-3 md:grid-cols-3">
           {languages.map((l) => (
             <div key={l.code} className="space-y-1.5">
@@ -165,7 +165,10 @@ export function VoiceSettingsForm({ value, languages, voices }) {
                 id={`voice-${l.code}`}
                 value={form.voices[l.code] ?? l.fileVoice}
                 onChange={(v) => setForm({ ...form, voices: { ...form.voices, [l.code]: v } })}
-                items={voices.map((v) => ({ value: v, label: v === l.fileVoice ? `${v} (language file default)` : v }))}
+                items={[
+                  ...voices.female.map((v) => ({ value: v, label: `${v} · female` })),
+                  ...voices.male.map((v) => ({ value: v, label: `${v} · male` })),
+                ].map((o) => (o.value === l.fileVoice ? { ...o, label: `${o.label} (language file default)` } : o))}
               />
             </div>
           ))}

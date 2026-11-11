@@ -11,7 +11,7 @@ export function parseCostFilters(sp) {
   return {
     from: isDate(sp.from) ? sp.from : "",
     to: isDate(sp.to) ? sp.to : "",
-    provider: sp.provider === "CLAUDE" || sp.provider === "OPENAI" ? sp.provider : "",
+    provider: ["CLAUDE", "OPENAI", "GOOGLE"].includes(sp.provider) ? sp.provider : "",
     job: typeof sp.job === "string" ? sp.job : "",
     tab: COST_TABS.includes(sp.tab) ? sp.tab : "interviews",
     page: Math.max(1, Number.parseInt(sp.page, 10) || 1),

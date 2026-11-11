@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
-import { Loader2 } from "lucide-react"
+import { Loader2, Volume2 } from "lucide-react"
 import { api, clearSession, errorLabel, loadSession, saveSession } from "@/lib/interview/client"
 import { useSpeaker } from "@/hooks/use-speaker"
 import { LanguagePicker } from "./language-picker"
@@ -73,14 +73,18 @@ export function InterviewApp({ job, languages, ttsMode }) {
     if (!last || last.role !== "assistant" || last.id === lastSpokenRef.current) return
     lastSpokenRef.current = last.id
     if (!voiceOn) return setListenAfter(last.id)
-    speaker.speak(last.id, last.content).then((finished) => finished && setListenAfter(last.id))
+    speaker.speak(last.id, last.content).then((result) => result === "done" && setListenAfter(last.id))
   }, [state, voiceOn, speaker])
 
+  // iPhone blocked the audio (no recent tap): play it from this tap, then listen as usual
+  function playBlocked() {
+    const id = speaker.blockedId
+    speaker.playBlocked().then((result) => result === "done" && setListenAfter(id))
+  }
+
   async function start(code) {
-    // This tap unlocks audio on mobile browsers for the rest of the session
-    try {
-      window.speechSynthesis?.speak(new SpeechSynthesisUtterance(""))
-    } catch {}
+    // This tap unlocks audio for the rest of the interview (iPhone only plays sound started from a tap)
+    speaker.unlock()
     setLangCode(code)
     setStarting(code)
     setError(null)
@@ -153,7 +157,10 @@ export function InterviewApp({ job, languages, ttsMode }) {
     return <LanguagePicker job={job} languages={languages} onPick={start} starting={starting} error={error} />
   }
 
-  const finished = state.ui === "done" || state.ui === "duplicate"
+  // Interview over: hide the chat and show only the thank-you page (the closing message is still read aloud)
+  if (state.ui === "done" || state.ui === "duplicate") {
+    return <FinalScreen jobTitle={job.title} duplicate={state.ui === "duplicate"} labels={labels} />
+  }
 
   return (
     <main className="mx-auto flex h-svh max-w-lg flex-col bg-background">
@@ -169,15 +176,24 @@ export function InterviewApp({ job, languages, ttsMode }) {
         messages={state.messages}
         pending={pending}
         speakingId={speaker.speakingId}
-        onReplay={(m) => speaker.speak(m.id, m.content)}
+        onReplay={(m) => (speaker.unlock(), speaker.speak(m.id, m.content))}
         labels={labels}
         thinking={!!pending && !error}
         footerKey={state.ui}
       />
 
-      {finished ? (
-        <FinalScreen duplicate={state.ui === "duplicate"} labels={labels} />
-      ) : state.ui === "video" ? (
+      {voiceOn && speaker.blockedId && (
+        <button
+          type="button"
+          onClick={playBlocked}
+          className="mx-4 mb-2 flex h-14 shrink-0 items-center justify-center gap-2 rounded-2xl bg-primary text-lg font-semibold text-primary-foreground shadow-md active:scale-[0.98]"
+        >
+          <Volume2 className="size-6" />
+          {labels.tapToListen}
+        </button>
+      )}
+
+      {state.ui === "video" ? (
         <VideoRecorder
           session={session}
           labels={labels}
@@ -195,6 +211,7 @@ export function InterviewApp({ job, languages, ttsMode }) {
           onSend={send}
           autoListenKey={listenAfter}
           onBeforeListen={speaker.stop}
+          onUserGesture={speaker.unlock}
           onError={setError}
         />
       )}
